@@ -9,10 +9,47 @@ from typing import Optional
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+
+BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
+
+#The background is set with 40 plus the number of the color, and the foreground with 30
+
+#These are the sequences need to get colored ouput
+RESET_SEQ = "\033[0m"
+COLOR_SEQ = "\033[1;%dm"
+BOLD_SEQ = "\033[1m"
+
+def formatter_message(message, use_color = True):
+    if use_color:
+        message = message.replace("$RESET", RESET_SEQ).replace("$BOLD", BOLD_SEQ)
+    else:
+        message = message.replace("$RESET", "").replace("$BOLD", "")
+    return message
+
+COLORS = {
+    'WARNING': CYAN,
+    'INFO': GREEN,
+    'DEBUG': WHITE,
+    'CRITICAL': RED,
+    'ERROR': YELLOW
+}
+
+class ColoredFormatter(logging.Formatter):
+    def __init__(self, msg, use_color = True):
+        logging.Formatter.__init__(self, msg)
+        self.use_color = use_color
+
+    def format(self, record):
+        levelname = record.levelname
+        if self.use_color and levelname in COLORS:
+            levelname_color = "\033[38;2;30;30;30m" + COLOR_SEQ % (40 + COLORS[levelname]) + "[" + levelname + "]" + RESET_SEQ
+            record.levelname = levelname_color
+        return logging.Formatter.format(self, record)
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('[%(levelname)s]: %(message)s'))
+handler.setFormatter(ColoredFormatter('%(levelname)s: %(message)s'))
 logger.addHandler(handler)
 
 channel_names = ['apple', 'strawberry', 'pepper', 'criossant', 'pancake', 'pizza', 'taco', 'pasta', 'ice-cream', 'pie', 'cupcake', 'chocolate', 'cake', 'cookie', 'donut', 'popcorn', 'bagel', 'broccoli', 'bread', 'potato', 'carrot', 'coconut', 'pineapple', 'mango']
